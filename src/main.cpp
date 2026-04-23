@@ -25,7 +25,7 @@ void DrawPixel(int x, int y, Color color){
     fb_ptr[x * (framebuffer->pitch / 4) + y] = RGB(color.r, color.g, color.b);
 }
 
-extern "C" void kmain(void) {
+extern "C" void kernel_main(void) {
     framebuffer = framebuffer_request.response->framebuffers[0];
     fb_ptr = (uint32_t*)framebuffer->address;
     Color col = {255,255,255};
