@@ -36,6 +36,10 @@ typedef struct Bootloader
 Bootloader bootloader;
 
 void parse_bootloader(){
+    if (limineKrnreq.response == NULL) {
+        while(1); 
+    }
+    
     struct limine_paging_mode_response *liminePagingres = liminePagingreq.response;
     if(liminePagingres->mode != LIMINE_PAGING_MODE_X86_64_4LVL){
         //dobra moze jak bedzie debug albo panic to cos tutaj bedzie 
@@ -46,9 +50,9 @@ void parse_bootloader(){
     bootloader.hhdm_offset = limineHHDM->offset;
     
     //kernel address
-   /* struct limine_kernel_address_response* limineKernelAddress = limineKrnreq.response;
-    bootloader.virtual_base = limineKernelAddress->virtual_base;
-    bootloader.physical_base = limineKernelAddress->physical_base;*/
+   // struct limine_kernel_address_response* limineKernelAddress = limineKrnreq.response;
+  //  bootloader.virtual_base = limineKernelAddress->virtual_base;
+   // bootloader.physical_base = limineKernelAddress->physical_base;
 
     //memory map
     
