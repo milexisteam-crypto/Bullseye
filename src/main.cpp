@@ -76,7 +76,7 @@ extern "C" void kernel_main() {
     Clear({0,0,64});
 
     // bufor na datę
- char dateBuf[16];
+char dateBuf[16];
 FormatDate(time, dateBuf);
 
 char line[64];

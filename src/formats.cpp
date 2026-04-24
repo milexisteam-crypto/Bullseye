@@ -2,10 +2,9 @@
 #include "formats.hpp"
 
 void FormatDate(const Time& t, char* out) {
-    int fullYear = t.century * 100 + t.year;
-
-    out[0] = '0' + (fullYear / 1000) % 10;
-    out[1] = '0' + (fullYear / 100) % 10;
+    int fullYear = t.year;
+    out[0] = '2';
+    out[1] = '0';
     out[2] = '0' + (fullYear / 10) % 10;
     out[3] = '0' + (fullYear % 10);
     out[4] = '-';

@@ -67,5 +67,13 @@ Time read_rtc() {
      if (!(registerB & 0x02) && (time.hour & 0x80)) {
       time.hour = ((time.hour & 0x7F) + 12) % 24;
     }
+
+
+    time.year += (2026 / 100) * 100;
+    if (time.year < 2026)
+      time.year += 100;
+    
+
+
     return time;
 }

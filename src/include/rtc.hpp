@@ -6,7 +6,7 @@ typedef struct Time{
   unsigned char hour;
   unsigned char day;
   unsigned char month;
-  unsigned char year;
+  unsigned int  year;
   unsigned char century;
 }Time;
 
