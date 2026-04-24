@@ -96,7 +96,7 @@ while(true) {
 // ===============================
 
 extern "C" void _start() {
-    parse_bootloader();
+    //parse_bootloader(); <- nie wolno tego odkomentowac bo triple fault
     time = read_rtc();
     kernel_main();
 
