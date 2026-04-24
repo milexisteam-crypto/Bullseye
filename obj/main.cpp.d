@@ -1,3 +1,6 @@
-obj/main.cpp.o: src/main.cpp src/include/limine.h src/include/font.hpp
+obj/main.cpp.o: src/main.cpp src/include/limine.h src/include/font.hpp \
+ src/include/bui_text.hpp src/include/bui_core.hpp
 src/include/limine.h:
 src/include/font.hpp:
+src/include/bui_text.hpp:
+src/include/bui_core.hpp:
