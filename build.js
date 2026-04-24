@@ -1,10 +1,10 @@
-// =========================
-// CONFIG
-// =========================
-
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+
+// =========================
+// CONFIG
+// =========================
 
 const OUTPUT = "Bullseye";
 
@@ -13,43 +13,60 @@ let TOOLCHAIN_PREFIX = TOOLCHAIN ? TOOLCHAIN + "-" : "";
 
 const CC  = TOOLCHAIN_PREFIX + "gcc";
 const CXX = TOOLCHAIN_PREFIX + "g++";
-const LD  = TOOLCHAIN_PREFIX + "ld.lld";
+const LD  = TOOLCHAIN_PREFIX + "ld"; // 👈 IMPORTANT: BFD LINKER (stable)
 const AS  = "nasm";
 
 // =========================
-// FLAGS
+// FLAGS (FIXED)
 // =========================
 
 let CXXFLAGS = [
-    "-g", "-O2", "-pipe",
-    "-Wall", "-Wextra",
+    "-g",
+    "-O2",
+    "-pipe",
+    "-Wall",
+    "-Wextra",
     "-ffreestanding",
+
     "-fno-stack-protector",
     "-fno-stack-check",
+
+    "-fno-pie",      // 🔥 FIX
+    "-fno-pic",      // 🔥 FIX
+
     "-fno-lto",
-    "-fno-PIC",
+
     "-ffunction-sections",
     "-fdata-sections",
+
     "-m64",
     "-march=x86-64",
     "-mabi=sysv",
     "-mno-red-zone",
     "-mcmodel=kernel",
+
     "-fno-exceptions",
-    "-fno-rtti",
-    "-fno-use-cxa-atexit"
+    "-fno-rtti"
 ].join(" ");
 
 let CPPFLAGS = "-I src -I src/include -MMD -MP";
 
 let NASMFLAGS = "-f elf64 -g -F dwarf";
 
+// =========================
+// LINKER FLAGS (CRITICAL FIX)
+// =========================
+
 let LDFLAGS = [
     "-nostdlib",
     "-static",
     "-T linker.lds",
     "-z max-page-size=0x1000",
-    "--gc-sections"
+    "--gc-sections",
+
+    // 🔥 CRITICAL FIXES FOR LIMINE
+    "-no-pie",
+    "-z noexecstack"
 ].join(" ");
 
 // =========================
@@ -89,7 +106,7 @@ const OBJECTS = [
 ];
 
 // =========================
-// BUILD HELPERS
+// HELPERS
 // =========================
 
 function run(cmd) {
@@ -103,7 +120,7 @@ function ensureDir(file) {
 }
 
 // =========================
-// COMPILATION
+// COMPILE
 // =========================
 
 function compile() {
@@ -133,54 +150,58 @@ function compile() {
 }
 
 // =========================
-// LINKING
+// LINK
 // =========================
 
 function link() {
     if (!fs.existsSync("bin")) fs.mkdirSync("bin");
 
     const objList = OBJECTS.join(" ");
+
+    // 🔥 IMPORTANT: BFD ld (NOT lld)
     run(`${LD} ${LDFLAGS} ${objList} -o bin/${OUTPUT}`);
 }
 
+// =========================
+// ISO
+// =========================
+
 function generateISO() {
-    console.log("=== Preparing ISO root ===");
-    run("mkdir -p ./obj/iso_root");
-    run("mkdir -p ./obj/iso_root/boot");
-    run("cp -v bin/Bullseye ./obj/iso_root/boot/");
+    console.log("=== ISO ===");
 
-    console.log("=== Copying Limine BIOS/UEFI files ===");
-    run("mkdir -p ./obj/iso_root/boot/limine");
-    run("cp -v limine.conf limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin ./obj/iso_root/boot/limine/");
+    run("rm -rf obj/iso_root");
+    run("mkdir -p obj/iso_root/boot");
+    run("mkdir -p obj/iso_root/boot/limine");
+    run("mkdir -p obj/iso_root/EFI/BOOT");
+run("mkdir -p obj/iso_root/Resources");
+    run("cp -v bin/Bullseye obj/iso_root/boot/");
+    run("cp -v Resources/* obj/iso_root/Resources/");
+    run("cp -v limine.conf obj/iso_root/boot/limine/");
+    run("cp -v limine/limine-bios.sys obj/iso_root/boot/limine/");
+    run("cp -v limine/limine-bios-cd.bin obj/iso_root/boot/limine/");
+    run("cp -v limine/limine-uefi-cd.bin obj/iso_root/boot/limine/");
 
-    console.log("=== Copying EFI executables ===");
-    run("mkdir -p ./obj/iso_root/EFI/BOOT");
-    run("cp -v limine/BOOTX64.EFI ./obj/iso_root/EFI/BOOT/");
-    run("cp -v limine/BOOTIA32.EFI ./obj/iso_root/EFI/BOOT/");
+    run("cp -v limine/BOOTX64.EFI obj/iso_root/EFI/BOOT/");
+    run("cp -v limine/BOOTIA32.EFI obj/iso_root/EFI/BOOT/");
 
-    console.log("=== Creating ISO ===");
     run(
         "xorriso -as mkisofs -R -r -J " +
         "-b boot/limine/limine-bios-cd.bin " +
-        "-no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus " +
-        "-apm-block-size 2048 --efi-boot boot/limine/limine-uefi-cd.bin " +
+        "-no-emul-boot -boot-load-size 4 -boot-info-table " +
+        "-hfsplus -apm-block-size 2048 " +
+        "--efi-boot boot/limine/limine-uefi-cd.bin " +
         "-efi-boot-part --efi-boot-image --protective-msdos-label " +
-        "./obj/iso_root -o ./bin/Bullseye.iso"
+        "obj/iso_root -o bin/Bullseye.iso"
     );
-
-    console.log("=== ISO generated successfully ===");
 }
 
 // =========================
-// RUN IN QEMU
+// RUN
 // =========================
 
 function runOs() {
-    console.log("=== Running QEMU ===");
-    run("qemu-system-x86_64 -cdrom bin/Bullseye.iso");
+    run("qemu-system-x86_64 -cdrom bin/Bullseye.iso -no-reboot -d cpu_reset");
 }
-
-
 
 // =========================
 // CLEAN
@@ -189,7 +210,6 @@ function runOs() {
 function clean() {
     if (fs.existsSync("obj")) fs.rmSync("obj", { recursive: true });
     if (fs.existsSync("bin")) fs.rmSync("bin", { recursive: true });
-    console.log("Cleaned.");
 }
 
 // =========================
@@ -200,21 +220,24 @@ const cmd = process.argv[2] || "all";
 
 switch (cmd) {
     case "all":
-        clean()
+        clean();
         compile();
         link();
-        generateISO()
+        generateISO();
+        break;
+
+    case "run":
+        clean();
+        compile();
+        link();
+        generateISO();
+        runOs();
         break;
 
     case "clean":
         clean();
         break;
-    case "run":
-        clean()
-        compile()
-        link()
-        generateISO()
-        runOs()
+
     default:
         console.log("Unknown command:", cmd);
 }
