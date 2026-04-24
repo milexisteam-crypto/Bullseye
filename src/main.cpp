@@ -7,7 +7,7 @@
 #include "bui_text.hpp"
 #include "rtc.hpp"
 #include "formats.hpp"
-
+#include "ps2keyboard.hpp"
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
 // ===============================
@@ -84,11 +84,10 @@ join(line, "Data: ", dateBuf, nullptr);
 
 draw_string(20, 20, line, {255,255,255});
 
+while(true) {
+    draw_char(20, 40, key(), {255,255,255});
+}
 
-    // jeśli masz malloc – przydałoby się:
-    // free(line);
-
-    for(;;) __asm__("hlt");
 }
 
 // ===============================
