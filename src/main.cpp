@@ -3,6 +3,7 @@
 #include "limine.h"
 #include "font.hpp"
 #include "bui_text.hpp"
+#include <rtc.hpp>
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
 // ===============================
@@ -33,6 +34,8 @@ volatile uint32_t *fb_ptr = nullptr;
 // KERNEL MAIN
 // ===============================
 
+Time time;
+
 extern "C" void kernel_main(){
 
     if(!framebuffer_request.response ||
@@ -45,8 +48,16 @@ extern "C" void kernel_main(){
 
     Clear({0,0,64});
     Clear({0,255,0});
+    char buf[3];
 
-    draw_string(20,20,"HELLO WORLD",{255,255,255});
+    buf[0] = (time.second / 10) + '0';
+    buf[1] = (time.second % 10) + '0';
+    buf[2] = 0;
+
+    draw_string(20,20,"sekunda: ",{255,255,255});
+    draw_char(90,20,buf[0] ,{255,255,255});
+    draw_char(98,20,buf[1],{255,255,255});
+   
 
     for(;;)__asm__("hlt");
 }
@@ -56,6 +67,8 @@ extern "C" void kernel_main(){
 // ===============================
 
 extern "C" void _start(){
+    time = read_rtc();
     kernel_main();
+    
     for(;;)__asm__("hlt");
 }
