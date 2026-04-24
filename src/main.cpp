@@ -29,9 +29,8 @@ void DrawPixel(int x, int y, Color color){
 extern "C" void kernel_main(void) {
     framebuffer = framebuffer_request.response->framebuffers[0];
     fb_ptr = (uint32_t*)framebuffer->address;
-    Color col = {20,20,20};
+    Color col = {255,255,255};
     DrawPixel(20,20, col);
 
     __asm__("hlt");
 }
-
