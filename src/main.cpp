@@ -8,6 +8,7 @@
 #include "rtc.hpp"
 #include "formats.hpp"
 #include "ps2keyboard.hpp"
+#include <bootloader.hpp>
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
 // ===============================
@@ -95,6 +96,7 @@ while(true) {
 // ===============================
 
 extern "C" void _start() {
+    parse_bootloader();
     time = read_rtc();
     kernel_main();
 
