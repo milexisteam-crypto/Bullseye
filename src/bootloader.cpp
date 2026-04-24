@@ -46,9 +46,9 @@ void parse_bootloader(){
     bootloader.hhdm_offset = limineHHDM->offset;
     
     //kernel address
-    struct limine_kernel_address_response* limineKernelAddress = limineKrnreq.response;
+   /* struct limine_kernel_address_response* limineKernelAddress = limineKrnreq.response;
     bootloader.virtual_base = limineKernelAddress->virtual_base;
-    bootloader.physical_base = limineKernelAddress->physical_base;
+    bootloader.physical_base = limineKernelAddress->physical_base;*/
 
     //memory map
     
