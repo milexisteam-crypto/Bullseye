@@ -5,8 +5,11 @@ static volatile struct limine_paging_mode_request liminePagingreq = {
     .revision = 0,
     .mode = LIMINE_PAGING_MODE_X86_64_4LVL};
 
-static volatile struct limine_kernel_address_request limineKrnreq = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST, .revision = 0};
+__attribute__((used, section(".requests")))
+static struct limine_kernel_address_request limineKrnreq = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0
+};
 
 static volatile struct limine_hhdm_request limineHHDMreq = {
     .id = LIMINE_HHDM_REQUEST, .revision = 0};
@@ -23,23 +26,19 @@ static volatile struct limine_rsdp_request limineRsdpReq = {
 typedef struct Bootloader
 {
     uint64_t hhdm_offset;
-    uint64_t physical_base;
-    uint64_t virtual_base;
+    uint64_t kernelVirtBase;
+    uint64_t kernelPhysBase;
     uint64_t entry_count;
     uint64_t cpu_count;
     uint64_t smpBspIndex;
     uint64_t rsdp;
-    uint64_t total_memory = 0;
+    uint64_t total_memory ;
     LIMINE_PTR(struct limine_memmap_entry **) entries;
 }Bootloader;
 
 Bootloader bootloader;
 
-void parse_bootloader(){
-    if (limineKrnreq.response == NULL) {
-        while(1); 
-    }
-    
+void parse_bootloader(){    
     struct limine_paging_mode_response *liminePagingres = liminePagingreq.response;
     if(liminePagingres->mode != LIMINE_PAGING_MODE_X86_64_4LVL){
         //dobra moze jak bedzie debug albo panic to cos tutaj bedzie 
@@ -50,10 +49,12 @@ void parse_bootloader(){
     bootloader.hhdm_offset = limineHHDM->offset;
     
     //kernel address
-   // struct limine_kernel_address_response* limineKernelAddress = limineKrnreq.response;
-  //  bootloader.virtual_base = limineKernelAddress->virtual_base;
-   // bootloader.physical_base = limineKernelAddress->physical_base;
-
+    if (limineKrnreq.response == NULL) while(1);
+    struct limine_kernel_address_response *kernel_addr = limineKrnreq.response;
+    uint64_t virt_base = kernel_addr->virtual_base;
+    uint64_t phys_base = kernel_addr->physical_base;
+    bootloader.kernelPhysBase = phys_base;
+   // bootloader.kernelVirtBase = virt_base;
     //memory map
     
     struct limine_memmap_response *limine_memmap = limineMMreq.response;
@@ -75,7 +76,7 @@ void parse_bootloader(){
     
     struct limine_smp_response * liminesmp = limineSmpReq.response;
     bootloader.cpu_count = liminesmp->cpu_count;
-    bootloader.smpBspIndex = (uint64_t)(-67);
+    bootloader.smpBspIndex = (uint64_t)(-1);
     for (int i = 0; i < bootloader.cpu_count; i++)
     {
        
@@ -85,7 +86,7 @@ void parse_bootloader(){
         }
     }
 
-    if(bootloader.smpBspIndex == (uint64_t)(-67)){
+    if(bootloader.smpBspIndex == (uint64_t)(-1)){
         //tutej tez by sie debug przydal
     }
     
