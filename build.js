@@ -237,7 +237,9 @@ switch (cmd) {
     case "clean":
         clean();
         break;
-
+    case "check":
+            clean()
+            compile()
     default:
         console.log("Unknown command:", cmd);
 }

@@ -9,6 +9,8 @@
 #include "formats.hpp"
 #include "ps2keyboard.hpp"
 #include <bootloader.hpp>
+#include "gdt.hpp"
+#include "string.hpp"
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
 // ===============================
@@ -66,6 +68,8 @@ Time time;
 // ===============================
 
 extern "C" void kernel_main() {
+    gdt_init();
+    enableInterrupts();
     if (!framebuffer_request.response ||
         framebuffer_request.response->framebuffer_count < 1) {
         for(;;) __asm__("hlt");
@@ -77,16 +81,12 @@ extern "C" void kernel_main() {
     Clear({0,0,64});
 
     // bufor na datę
-char dateBuf[16];
-FormatDate(time, dateBuf);
+String dataFormatted = "Date: " + FormatDate(time);
 
-char line[64];
-join(line, "Data: ", dateBuf, nullptr);
-
-draw_string(20, 20, line, {255,255,255});
+draw_string(20, 20, dataFormatted.c_str(), {255,255,255});
 
 while(true) {
-    draw_char(20, 40, key(), {255,255,255});
+    draw_char(20, 40, readKey(), {255,255,255});
 }
 
 }
@@ -96,6 +96,7 @@ while(true) {
 // ===============================
 
 extern "C" void _start() {
+    disableInterrupts();
     parse_bootloader();
     time = read_rtc();
     kernel_main();
