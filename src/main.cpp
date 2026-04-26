@@ -11,6 +11,7 @@
 #include <bootloader.hpp>
 #include "gdt.hpp"
 #include <idt.hpp>
+#include <idt.hpp>
 #include "string.hpp"
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
@@ -98,6 +99,7 @@ while(true) {
 
 extern "C" void _start() {
     disableInterrupts();
+    
     parse_bootloader();
     time = read_rtc();
     kernel_main();
