@@ -10,6 +10,7 @@
 #include "ps2keyboard.hpp"
 #include <bootloader.hpp>
 #include "gdt.hpp"
+#include <idt.hpp>
 #include "string.hpp"
 // ===============================
 // LIMINE FRAMEBUFFER REQUEST
