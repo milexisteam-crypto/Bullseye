@@ -20,7 +20,7 @@ static idt_register_t idt_reg;
 
 void set_idt_gate(int index, uint64_t handler, uint8_t flags){
    idt[index].offset_1 = handler;
-   //idt[index].selector = potrzebuje gdt kernel code wiec jak zrobisz to tutaj trzeba dodać albo sam dodam;
+   idt[index].selector = 0x08
    idt[index].ist = 0;
    idt[index].attributes = flags;
    idt[index].offset_2 = (uint16_t)(handler >> 16);
